@@ -1,3 +1,4 @@
+// Package image_scaling provides a code base for transcoding images
 package image_scaling
 
 import (
@@ -13,11 +14,16 @@ import (
 	"golang.org/x/image/draw"
 )
 
+// ScalingImage is a placeholder for image.Image as well as its format
+// created to avoid constant decoding of image
+// as well as to create functions linked to it
 type ScalingImage struct {
 	image  image.Image
 	format string
 }
 
+// Scale function given a ration scales the source image
+// and returns a new ScalingImage object
 func (sI *ScalingImage) Scale(ratio float64) (scaledImage *ScalingImage) {
 	dst := image.NewRGBA(image.Rect(0, 0, int(float64(sI.image.Bounds().Max.X)*ratio), int(float64(sI.image.Bounds().Max.Y)*ratio)))
 
@@ -31,6 +37,7 @@ func (sI *ScalingImage) Scale(ratio float64) (scaledImage *ScalingImage) {
 
 }
 
+// Encode the bytes into an image
 func (sI *ScalingImage) Encode(w io.Writer) (err error) {
 	switch sI.format {
 	case "png":
@@ -43,6 +50,8 @@ func (sI *ScalingImage) Encode(w io.Writer) (err error) {
 	return nil
 }
 
+// NewImage function reads image object from bytes stream
+// This function also errors in case unaccepted image format is provided to it!
 func NewImage(r io.Reader) (sI *ScalingImage, err error) {
 	img, format, err := image.Decode(r)
 
@@ -57,6 +66,8 @@ func NewImage(r io.Reader) (sI *ScalingImage, err error) {
 	return sI, nil
 }
 
+// ScaleImageFromSource scales source image
+// given the source and destination paths, as well as new resolution
 func ScaleImageFromSource(sourcePath string, destPath string, scaleY int, scaleX int) error {
 	log.Printf("Start scaling of %s to %s with expected resolution %d:%d \n", sourcePath, destPath, scaleY, scaleX)
 	fSrc, err := os.Open(sourcePath)
