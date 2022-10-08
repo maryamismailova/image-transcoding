@@ -1,8 +1,6 @@
 package main
 
 import (
-	_ "image/jpeg"
-	_ "image/png"
 	"log"
 	"maryam/image-transcode/pkg/config_reader"
 	"maryam/image-transcode/pkg/image_scaling"
