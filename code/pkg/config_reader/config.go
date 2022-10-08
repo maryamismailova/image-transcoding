@@ -19,6 +19,10 @@ type Config struct {
 	DestinationFilePath     string `properties:"destinationFilePath"`
 	SourceS3BucketName      string `properties:"sourceS3Bucket"`
 	DestinationS3BucketName string `properties:"destinationS3Bucket"`
+<<<<<<< Updated upstream
+=======
+	S3ObjectMaxSizeInMb     int64  `properties:"s3ObjectMaxSizeInMb,default=100"`
+>>>>>>> Stashed changes
 }
 
 //GetConfigsFromDir reads application properties from a given root directory
