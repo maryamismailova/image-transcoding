@@ -1,9 +1,10 @@
-package main
+package config_reader
 
 import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 
 	"github.com/magiconair/properties"
 )
@@ -17,18 +18,19 @@ type Config struct {
 	DestinationS3BucketName string `properties:"destinationS3Bucket"`
 }
 
-func getConfigs() (config *Config, err error) {
+func GetConfigsFromDir(configRootDir string) (config *Config, err error) {
 	defer func() {
 		if err_panic := recover(); err_panic != nil {
 			err = fmt.Errorf("%v: failed to get config file", err_panic)
 		}
 	}()
 	log.Printf("Reading configurations from properties files")
-	var propertiesFiles = []string{"application.properties"}
+
+	var propertiesFiles = []string{path.Join(configRootDir, "application.properties")}
 	env, ok := os.LookupEnv("ENV")
 	if ok {
 		log.Printf("Adding property file for %s environment", env)
-		propertiesFiles = append(propertiesFiles, fmt.Sprintf("application-%s.properties", env))
+		propertiesFiles = append(propertiesFiles, path.Join(configRootDir, fmt.Sprintf("application-%s.properties", env)))
 	}
 
 	p, err := properties.LoadFiles(propertiesFiles, properties.UTF8, true)
@@ -42,4 +44,13 @@ func getConfigs() (config *Config, err error) {
 	}
 	log.Printf("Loaded configurations")
 	return config, nil
+}
+
+func GetConfigs() (config *Config, err error) {
+	defer func() {
+		if err_panic := recover(); err_panic != nil {
+			err = fmt.Errorf("%v: failed to get config file", err_panic)
+		}
+	}()
+	return GetConfigsFromDir("configs/")
 }

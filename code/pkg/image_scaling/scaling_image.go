@@ -1,4 +1,4 @@
-package main
+package image_scaling
 
 import (
 	"fmt"
@@ -57,7 +57,7 @@ func NewImage(r io.Reader) (sI *ScalingImage, err error) {
 	return sI, nil
 }
 
-func scaleImageFromSource(sourcePath string, destPath string, scaleY int, scaleX int) error {
+func ScaleImageFromSource(sourcePath string, destPath string, scaleY int, scaleX int) error {
 	log.Printf("Start scaling of %s to %s with expected resolution %d:%d \n", sourcePath, destPath, scaleY, scaleX)
 	fSrc, err := os.Open(sourcePath)
 	if err != nil {
