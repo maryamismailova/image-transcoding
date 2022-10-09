@@ -6,6 +6,6 @@ on:
       - "feature/**"
 jobs:
   call-build-deploy-workflow:
-    uses: ./.github/workflows/reusable-workflow.yml
+    uses: ./.github/workflows/reusable-workflow.yaml
     with:
       ENV: "stage"
