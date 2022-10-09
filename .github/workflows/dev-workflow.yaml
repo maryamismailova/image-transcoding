@@ -39,10 +39,12 @@ jobs:
         with:
           name: lambda-go-zip
       - name: Deploy to AWS lambda
+        env:
+          FUNCTION_NAME: ${{secrets.AWS_GO_LAMBDA_FUNCTION_NAME}}
         run: |
           aws lambda update-function-code --function-name image-scaling-trigger --zip-file fileb://function.zip --publish
           echo '::echo::on'
-          echo "::set-output name=VERSION_ID::$(aws lambda update-function-code --function-name ${{secrets.AWS_GO_LAMBDA_FUNCTION_NAME}} --zip-file fileb://function.zip --publish | jq -r .Version)"
+          echo "::set-output name=VERSION_ID::$(aws lambda update-function-code --function-name ${FUNCTION_NAME} --zip-file fileb://function.zip --publish | jq -r .Version)"
         id: lambda_version
       - name: Update Lambda alias
         run: aws lambda update-alias --function-name ${{secrets.AWS_GO_LAMBDA_FUNCTION_NAME}} --function-version ${{steps.lambda_version.outputs.VERSION_ID}} --name ${ENV}
