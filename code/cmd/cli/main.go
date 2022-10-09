@@ -1,8 +1,6 @@
 package main
 
 import (
-	_ "image/jpeg"
-	_ "image/png"
 	"log"
 	"maryam/image-transcode/pkg/config_reader"
 	"maryam/image-transcode/pkg/image_scaling"
@@ -14,9 +12,12 @@ func TestImageScaling() {
 		log.Fatalf("Error: %v\n", err)
 	}
 	log.Printf("Loaded config: %+v\n", config)
-	err = image_scaling.ScaleImageFromSource(config.SourceFilePath, config.DestinationFilePath, config.DestResolutionY, config.DestResolutionX)
-	if err != nil {
-		log.Printf("Error: %v\n", err)
+	log.Printf("%v\n", len(config.TranscodingResolutions))
+	for _, transcoding := range config.TranscodingResolutions {
+		_, err = image_scaling.ScaleImageFromSource(config.SourceFilePath, config.DestinationFilePath, transcoding.GetResolutionY(), transcoding.GetResolutionX())
+		if err != nil {
+			log.Printf("Error: %v\n", err)
+		}
 	}
 }
 
