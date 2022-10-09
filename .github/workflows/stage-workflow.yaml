@@ -1,0 +1,11 @@
+name: stage
+
+on:
+  push:
+    branches:
+      - "feature/**"
+jobs:
+  call-build-deploy-workflow:
+    uses: ./.github/workflows/reusable-workflow.yml
+    with:
+      ENV: "stage"

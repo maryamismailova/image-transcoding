@@ -1,0 +1,62 @@
+on:
+  workflow_call:
+    inputs:
+      ENV:
+        required: true
+        type: string
+      LAMBDA_FUNCTION_NAME:
+        required: false
+        type: string
+        default: "image-scaling-trigger"
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: false
+      AWS_SECRET_ACCESS_KEY:
+        required: false
+      AWS_REGION:
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        name: Setup Go
+        with:
+          go-version-file: "code/go.mod"
+          cache: true
+          cache-dependency-path: code/go.sum
+      - run: CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/lambda/
+        name: Build GO lambda project
+        working-directory: ./code
+      - run: zip -qq -r function.zip main configs/
+        working-directory: ./code
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: lambda-go-zip
+          path: code/function.zip
+  deploy:
+    runs-on: ubuntu-22.04
+    needs:
+      - build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: lambda-go-zip
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Deploy to AWS lambda
+        run: |
+          echo '::echo::on'
+          echo "::set-output name=VERSION_ID::$(aws lambda update-function-code --function-name ${{inputs.LAMBDA_FUNCTION_NAME}} --zip-file fileb://function.zip --publish | jq -r .Version)"
+        id: lambda_version
+      - name: Update Lambda alias
+        run: aws lambda update-alias --function-name ${{inputs.LAMBDA_FUNCTION_NAME}} --function-version ${{steps.lambda_version.outputs.VERSION_ID}} --name ${ENV}
