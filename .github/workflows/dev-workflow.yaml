@@ -30,6 +30,8 @@ jobs:
           path: function.zip
   deploy:
     runs-on: ubuntu-22.04
+    needs:
+      - build
     steps:
       - uses: actions/checkout@v3
       - name: Download build artifact
