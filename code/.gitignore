@@ -1,0 +1,6 @@
+function.zip
+script.sh
+*.exe
+main
+tests/
+outputs/
