@@ -6,6 +6,7 @@ on:
 name: dev
 env:
   ENV: dev
+  LAMBDA_FUNCTION_NAME: image-scaling-trigger
 
 jobs:
   build:
@@ -39,10 +40,8 @@ jobs:
         with:
           name: lambda-go-zip
       - name: Deploy to AWS lambda
-        env:
-          FUNCTION_NAME: ${{secrets.AWS_GO_LAMBDA_FUNCTION_NAME}}
         run: |
-          aws lambda update-function-code --function-name ${FUNCTION_NAME} --zip-file fileb://function.zip --publish
+          aws lambda update-function-code --function-name ${{env.LAMBDA_FUNCTION_NAME}} --zip-file fileb://function.zip --publish
         id: lambda_version
       - name: Update Lambda alias
-        run: aws lambda update-alias --function-name ${{secrets.AWS_GO_LAMBDA_FUNCTION_NAME}} --function-version ${{steps.lambda_version.outputs.VERSION_ID}} --name ${ENV}
+        run: aws lambda update-alias --function-name ${{env.LAMBDA_FUNCTION_NAME}} --function-version ${{steps.lambda_version.outputs.VERSION_ID}} --name ${ENV}
