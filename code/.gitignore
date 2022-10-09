@@ -4,3 +4,5 @@ script.sh
 main
 tests/
 outputs/
+events/*
+!events/.gitkeep
