@@ -47,6 +47,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Deploy to AWS lambda
         run: |
+          echo '::echo::on'
           echo "::set-output name=VERSION_ID::$(aws lambda update-function-code --function-name ${{env.LAMBDA_FUNCTION_NAME}} --zip-file fileb://function.zip --publish | jq -r .Version)"
         id: lambda_version
       - name: Update Lambda alias
