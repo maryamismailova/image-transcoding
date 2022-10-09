@@ -39,3 +39,8 @@ variable "lambda_architectures" {
   default = ["x86_64"]
   type    = list(string)
 }
+
+variable "lambda_function_timeout_seconds" {
+  default = 10
+  type    = number
+}

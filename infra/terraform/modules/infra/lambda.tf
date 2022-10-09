@@ -13,7 +13,7 @@ module "lambda" {
 
   create_unqualified_alias_allowed_triggers = false
 
-  timeout             = 10
+  timeout             = var.lambda_function_timeout_seconds
   attach_policy_json  = true
   attach_policy_jsons = true
   policy_json = jsonencode({
