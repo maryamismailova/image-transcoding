@@ -1,0 +1,18 @@
+on:
+  push:
+    branches:
+      - "feature/**"
+
+name: dev
+env:
+  ENV: dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "^1.18.4"
+      - run: go version
