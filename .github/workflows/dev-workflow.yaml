@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - "feature/**"
+    paths:
+      - code/**
+      - .github/workflows/reusable-workflow.yaml
+      - .github/workflows/dev-workflow.yaml
 jobs:
   dev:
     uses: ./.github/workflows/reusable-workflow.yaml
