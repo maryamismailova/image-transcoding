@@ -39,14 +39,8 @@ jobs:
         with:
           name: lambda-go-zip
       - name: Deploy to AWS lambda
-        uses: appleboy/lambda-action@v0.1.5
-        with:
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: ${{ secrets.AWS_REGION }}
-          function_name: ${{ secrets.AWS_GO_LAMBDA_FUNCTION_NAME }}
-          publish: true
-          zip_file: function.zip
-          # handler: ${{ secrets.AWS_GO_LAMBDA_FUNCTION_HANDLER }}
-          # role: ${{ secrets.AWS_GO_LAMBDA_FUNCTION_ROLE_ARN }}
-          runtime: go1.x
+        run: |
+          echo "::set-output name=VERSION_ID::$(aws lambda update-function-code --function-name ${{secrets.AWS_GO_LAMBDA_FUNCTION_NAME}} --zip-file fileb://function.zip --publish | jq -r .Version)"
+        id: lambda_version
+      - name: Update Lambda alias
+        run: aws lambda update-alias --function-name ${{secrets.AWS_GO_LAMBDA_FUNCTION_NAME}} --function-version ${{steps.lambda_version.outputs.VERSION_ID}} --name ${ENV}
