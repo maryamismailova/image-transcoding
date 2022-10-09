@@ -27,7 +27,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: lambda-go-zip
-          path: function.zip
+          path: code/function.zip
   deploy:
     runs-on: ubuntu-22.04
     needs:
