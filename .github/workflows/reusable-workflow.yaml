@@ -59,4 +59,4 @@ jobs:
           echo "::set-output name=VERSION_ID::$(aws lambda update-function-code --function-name ${{inputs.LAMBDA_FUNCTION_NAME}} --zip-file fileb://function.zip --publish | jq -r .Version)"
         id: lambda_version
       - name: Update Lambda alias
-        run: aws lambda update-alias --function-name ${{inputs.LAMBDA_FUNCTION_NAME}} --function-version ${{steps.lambda_version.outputs.VERSION_ID}} --name ${inputs.ENV}
+        run: aws lambda update-alias --function-name ${{inputs.LAMBDA_FUNCTION_NAME}} --function-version ${{steps.lambda_version.outputs.VERSION_ID}} --name ${{inputs.ENV}}
