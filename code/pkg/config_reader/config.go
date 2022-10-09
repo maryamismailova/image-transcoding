@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"path"
+	"strconv"
+	"strings"
 
 	"github.com/magiconair/properties"
 )
@@ -13,13 +15,36 @@ import (
 //Config represents the data structure read from proprties file
 //some defaults are provided, while others like paths should be set explicitely
 type Config struct {
-	DestResolutionY         int    `properties:"resolutionY,default=200"`
-	DestResolutionX         int    `properties:"resolutionX,default=200"`
-	SourceFilePath          string `properties:"sourceFilePath"`
-	DestinationFilePath     string `properties:"destinationFilePath"`
-	SourceS3BucketName      string `properties:"sourceS3Bucket"`
-	DestinationS3BucketName string `properties:"destinationS3Bucket"`
-	S3ObjectMaxSizeInMb     int64  `properties:"s3ObjectMaxSizeInMb,default=100"`
+	DestResolutionY         int          `properties:"resolutionY,default=200"`
+	DestResolutionX         int          `properties:"resolutionX,default=200"`
+	SourceFilePath          string       `properties:"sourceFilePath"`
+	DestinationFilePath     string       `properties:"destinationFilePath"`
+	SourceS3BucketName      string       `properties:"sourceS3Bucket"`
+	DestinationS3BucketName string       `properties:"destinationS3Bucket"`
+	S3ObjectMaxSizeInMb     int64        `properties:"s3ObjectMaxSizeInMb,default=100"`
+	TranscodingResolutions  []Resolution `properties:"transcodingResolutions,default=300x300"`
+}
+
+type Resolution string
+
+func (resolution *Resolution) GetResolutionX() (res int) {
+	res, _ = strconv.Atoi(strings.Split(string(*resolution), "x")[1])
+	return res
+}
+
+func (resolution *Resolution) GetResolutionY() (res int) {
+	res, _ = strconv.Atoi(strings.Split(string(*resolution), "x")[0])
+	return res
+}
+
+func (resolution *Resolution) verify() bool {
+	if len(strings.Split(string(*resolution), "x")) != 2 {
+		return false
+	}
+	if strings.Compare(string(*resolution), fmt.Sprintf("%dx%d", resolution.GetResolutionY(), resolution.GetResolutionX())) != 0 {
+		return false
+	}
+	return true
 }
 
 //GetConfigsFromDir reads application properties from a given root directory
@@ -46,6 +71,13 @@ func GetConfigsFromDir(configRootDir string) (config *Config, err error) {
 	err = p.Decode(config)
 	if err != nil {
 		return nil, fmt.Errorf("%v: unable to decode config file to struct", err)
+	}
+
+	// Verify complex formats
+	for _, transcoding := range config.TranscodingResolutions {
+		if !transcoding.verify() {
+			return nil, fmt.Errorf("resolution %s with incorrect format. expected <int>x<int> (like 1024x1024)", string(transcoding))
+		}
 	}
 	log.Printf("Loaded configurations")
 	return config, nil
