@@ -3,9 +3,15 @@ name: stage
 on:
   push:
     branches:
-      - "feature/**"
+      - "release/**"
+  workflow_dispatch:
+
 jobs:
-  call-build-deploy-workflow:
+  stage:
     uses: ./.github/workflows/reusable-workflow.yaml
     with:
       ENV: "stage"
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+      AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      AWS_REGION: ${{secrets.AWS_REGION}}
