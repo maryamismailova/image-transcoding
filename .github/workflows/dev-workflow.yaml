@@ -16,8 +16,34 @@ jobs:
         name: Setup Go
         with:
           go-version-file: "code/go.mod"
-      - run: go build -o main ./cmd/lambda/
+          cache: true
+          cache-dependency-path: code/go.sum
+      - run: CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/lambda/
         name: Build GO lambda project
         working-directory: ./code
       - run: zip -qq -r function.zip main configs/
         working-directory: ./code
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: lambda-go-zip
+          path: function.zip
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: lambda-go-zip
+      - name: Deploy to AWS lambda
+        uses: appleboy/lambda-action@v0.1.5
+        with:
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          function_name: ${{ secrets.AWS_GO_LAMBDA_FUNCTION_NAME }}
+          zip_file: function.zip
+          # handler: ${{ secrets.AWS_GO_LAMBDA_FUNCTION_HANDLER }}
+          # role: ${{ secrets.AWS_GO_LAMBDA_FUNCTION_ROLE_ARN }}
+          runtime: go1.x
