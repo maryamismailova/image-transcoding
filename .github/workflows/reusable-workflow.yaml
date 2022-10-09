@@ -56,7 +56,8 @@ jobs:
       - name: Deploy to AWS lambda
         run: |
           echo '::echo::on'
-          echo "::set-output name=VERSION_ID::$(aws lambda update-function-code --function-name ${{inputs.LAMBDA_FUNCTION_NAME}} --zip-file fileb://function.zip --publish | jq -r .Version)"
+          echo "::set-output name=VERSION_ID::$(aws lambda update-function-code --function-name ${{inputs.LAMBDA_FUNCTION_NAME}} \
+           --zip-file fileb://function.zip --publish --description "Workflow run: ${GITHUB_WORKFLOW}-${GITHUB_RUN_NUMBER}, Commit: ${GITHUB_SHA::7}, Branch: ${GITHUB_HEAD_REF}" | jq -r .Version)"
         id: lambda_version
       - name: Update Lambda alias
         run: aws lambda update-alias --function-name ${{inputs.LAMBDA_FUNCTION_NAME}} --function-version ${{steps.lambda_version.outputs.VERSION_ID}} --name ${{inputs.ENV}}
