@@ -9,7 +9,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -19,7 +19,5 @@ jobs:
       - run: go build -o main ./cmd/lambda/
         name: Build GO lambda project
         working-directory: ./code
-      - uses: montudor/action-zip@v1
-        name: Zip Go artifact
-        with:
-          args: zip -qq -r function.zip main configs/
+      - run: zip -qq -r function.zip main configs/
+        working-directory: ./code
