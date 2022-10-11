@@ -25,7 +25,7 @@ jobs:
           go-version-file: "code/go.mod"
           cache: true
           cache-dependency-path: code/go.sum
-      - run: sam build --use-container --config-file samconfig.toml --config-env ${{inputs.ENV}}
+      - run: sam build  --config-file samconfig.toml --config-env ${{inputs.ENV}}
         working-directory: code/
       - name: Archive build artifacts
         uses: actions/upload-artifact@v3
