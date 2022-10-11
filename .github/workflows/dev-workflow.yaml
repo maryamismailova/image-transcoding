@@ -13,7 +13,6 @@ jobs:
     uses: ./.github/workflows/reusable-workflow.yaml
     with:
       ENV: "dev"
-      LAMBDA_FUNCTION_NAME: "image-scaling-trigger-dev"
     secrets:
       AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
       AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
