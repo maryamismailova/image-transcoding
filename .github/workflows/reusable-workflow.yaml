@@ -60,7 +60,7 @@ jobs:
           CODESHA256=$(aws lambda update-function-code --function-name ${{inputs.LAMBDA_FUNCTION_NAME}}  --zip-file fileb://function.zip --query "CodeSha256" --output text)
           aws lambda wait  function-updated --function-name ${{inputs.LAMBDA_FUNCTION_NAME}} 
           echo "::set-output name=VERSION_ID::$(aws lambda publish-version --function-name  ${{inputs.LAMBDA_FUNCTION_NAME}} --code-sha256 ${CODESHA256} \
-           --description \\"Workflow run: ${GITHUB_WORKFLOW}#${GITHUB_RUN_NUMBER}, Commit: ${GITHUB_SHA::7}, Branch: ${GITHUB_HEAD_REF}\\" --output text --query Version)"
+           --description \\"Workflow run: ${GITHUB_WORKFLOW}#${GITHUB_RUN_NUMBER}, Commit: ${GITHUB_SHA::7}, Branch: ${GITHUB_REF_NAME}\\" --output text --query Version)"
         id: lambda_version
       - name: Update Lambda alias
         run: aws lambda update-alias --function-name ${{inputs.LAMBDA_FUNCTION_NAME}} --function-version ${{steps.lambda_version.outputs.VERSION_ID}} --name ${{inputs.ENV}}
