@@ -17,8 +17,8 @@ import (
 type Config struct {
 	DestResolutionY         int          `properties:"resolutionY,default=200"`
 	DestResolutionX         int          `properties:"resolutionX,default=200"`
-	SourceFilePath          string       `properties:"sourceFilePath"`
-	DestinationFilePath     string       `properties:"destinationFilePath"`
+	SourceFilePath          string       `properties:"sourceFilePath,default=/tmp`
+	DestinationFilePath     string       `properties:"destinationFilePath,default=/tmp"`
 	SourceS3BucketName      string       `properties:"sourceS3Bucket"`
 	DestinationS3BucketName string       `properties:"destinationS3Bucket"`
 	S3ObjectMaxSizeInMb     int64        `properties:"s3ObjectMaxSizeInMb,default=100"`
