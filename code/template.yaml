@@ -37,10 +37,23 @@ Parameters:
     Default: 1024
   WorkflowRun:
     Type: String
+    Default: WORKFLOW_RUN
   CommitId:
     Type: String
+    Default: COMMIT_ID
   Branch:
     Type: String
+    Default: SOURCE_BRANCH
+
+Globals:
+  Function:
+    Environment:
+        Variables:
+          ENV: !Ref Env
+          S3_SOURCE_BUCKET: !Ref SourceBucketName
+          S3_DESTINATION_BUCKET: !Ref DestinationBucketName
+          IMAGE_MAX_ALLOWED_SIZE: !Ref ImageMaxAllowedSize
+          IMAGE_ALLOWED_RESOLUTIONS: !Ref ImageMaxAllowedResolutions
 
 Transform: AWS::Serverless-2016-10-31
 Resources:
@@ -51,62 +64,51 @@ Resources:
     Properties:
       BucketName: !Ref SourceBucketName
       AccessControl: Private
-<<<<<<< HEAD
-  ## Lambda function
-  ImageUploadsAPI:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${APIFunctionNamePrefix}-${Env}"
-      CodeUri: cmd/api/
-=======
   DestinationBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     Properties:
       BucketName: !Ref DestinationBucketName
       AccessControl: Private
-
-  ## Lambda function
-  ResizerFunction:
+  ImageUploadsAPI:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${FunctionNamePrefix}-${Env}"
-      CodeUri: cmd/lambda/
->>>>>>> feature/SAMDeployment
+      FunctionName: !Sub "${APIFunctionNamePrefix}-${Env}"
+      CodeUri: cmd/api/
       Handler: main
       Runtime: go1.x
       PackageType: Zip
       AutoPublishAlias: !Ref Env
       MemorySize: !Ref MemorySize
-<<<<<<< HEAD
       FunctionUrlConfig:
         AuthType: NONE
       Timeout: 10
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref SourceBucketName
-      Environment:
-        Variables:
-          ENV: !Ref Env
-
-Outputs:
-  FunctionArn:
-    Value: !Ref ImageUploadsAPI
-    Description: ImageUploadsAPI function  Arn
-=======
+      FunctionUrlConfig:
+        AuthType: NONE
+      Timeout: 10
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref SourceBucketName
+  ## Lambda function
+  ResizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${FunctionNamePrefix}-${Env}"
+      CodeUri: cmd/lambda/
+      Handler: main
+      Runtime: go1.x
+      PackageType: Zip
+      AutoPublishAlias: !Ref Env
+      MemorySize: !Ref MemorySize
       Description: !Sub "Workflow: ${WorkflowRun}, Commit: ${CommitId}, Branch: ${Branch}"
       Policies:
         - S3ReadPolicy:
             BucketName: !Ref SourceBucketName
         - S3CrudPolicy:
             BucketName: !Ref DestinationBucketName
-      Environment:
-        Variables:
-          ENV: !Ref Env
-          S3_SOURCE_BUCKET: !Ref SourceBucketName
-          S3_DESTINATION_BUCKET: !Ref DestinationBucketName
-          IMAGE_MAX_ALLOWED_SIZE: !Ref ImageMaxAllowedSize
-          IMAGE_ALLOWED_RESOLUTIONS: !Ref ImageMaxAllowedResolutions
       Events:
         FileUpload:
           Type: S3
@@ -121,7 +123,9 @@ Outputs:
   DestinationBucketName:
     Value: !Ref DestinationBucketName
     Description: S3 destination Bucket for object storage
-  FunctionArn:
+  S3FunctionArn:
     Value: !Ref ResizerFunction
     Description: ResizerFunction function  Arn
->>>>>>> feature/SAMDeployment
+  ApiFunctionArn:
+    Value: !Ref ImageUploadsAPI
+    Description: ImageUploadsAPI function  Arn

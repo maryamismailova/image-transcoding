@@ -4,7 +4,7 @@ version = 0.1
 
 [dev]
 [dev.global.parameters]
-parameter_overrides = "SourceBucketName=\"rb-input-dev\" DestinationBucketName=\"rb-output-dev\"  Env=\"dev\" MemorySize=\"1024\""
+parameter_overrides = "SourceBucketName=\"rb-input-dev\" DestinationBucketName=\"rb-output-dev\"  Env=\"dev\" MemorySize=\"1024\" "
 [dev.deploy.parameters]
 s3_bucket = "rb-sam"
 stack_name = "image-transcoding-dev"
