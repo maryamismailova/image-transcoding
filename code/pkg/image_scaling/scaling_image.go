@@ -73,35 +73,46 @@ func NewImage(r io.Reader) (sI *ScalingImage, err error) {
 // ScaleImageFromSource scales source image
 // given the source and destination paths, as well as new resolution
 func ScaleImageFromSource(sourcePath string, destPath string, scaleY int, scaleX int) (*ScalingImage, error) {
-	log.Printf("Start scaling of %s to %s with expected resolution %d:%d \n", sourcePath, destPath, scaleY, scaleX)
 	fSrc, err := os.Open(sourcePath)
 	if err != nil {
 		return nil, fmt.Errorf("%v: failed opening source file %s", err, sourcePath)
 	}
 	defer fSrc.Close()
 
-	img, err := NewImage(fSrc)
-	if err != nil {
-		return nil, fmt.Errorf("%v: error reading %s", err, sourcePath)
-	}
-	log.Printf("%s image of format: %s\n", sourcePath, img.format)
-
-	squareResolution := int(math.Min(float64(scaleX), float64(scaleY)))
-	log.Printf("The square's resolution: %d:%d", squareResolution, squareResolution)
-	scaleRatio := math.Min(float64(scaleX)/float64(img.image.Bounds().Max.X), float64(scaleY)/float64(img.image.Bounds().Max.Y))
-	log.Printf("Scale ratio to be applied is %f\n", scaleRatio)
-
-	scaledImage := img.Scale(scaleRatio)
-
 	fDest, err := os.Create(destPath)
 	if err != nil {
 		return nil, fmt.Errorf("%v: failed to create destination file %s", err, destPath)
 	}
 	defer fDest.Close()
-	err = scaledImage.Encode(fDest)
+
+	scaledImage, err := ScaleImage(fSrc, fDest, scaleY, scaleX)
 	if err != nil {
-		return nil, fmt.Errorf("%v: failed to encode to %s", err, destPath)
+		return nil, fmt.Errorf("%v: failed to scale the image %s", err, sourcePath)
 	}
+
 	log.Printf("Finished image transcoding")
+	return scaledImage, nil
+}
+
+func ScaleImage(reader io.Reader, writer io.Writer, scaleY int, scaleX int) (*ScalingImage, error) {
+
+	img, err := NewImage(reader)
+	if err != nil {
+		return nil, fmt.Errorf("%v: error reading image bytes", err)
+	}
+	log.Printf("Image of format: %s\n", img.format)
+
+	squareResolution := int(math.Min(float64(scaleX), float64(scaleY)))
+	scaleRatio := math.Min(float64(scaleX)/float64(img.image.Bounds().Max.X), float64(scaleY)/float64(img.image.Bounds().Max.Y))
+	log.Printf("The square's resolution: %d:%d", squareResolution, squareResolution)
+	log.Printf("Scale ratio to be applied is %f\n", scaleRatio)
+
+	scaledImage := img.Scale(scaleRatio)
+
+	err = scaledImage.Encode(writer)
+	if err != nil {
+		return nil, fmt.Errorf("%v: failed to encode image", err)
+	}
+
 	return scaledImage, nil
 }

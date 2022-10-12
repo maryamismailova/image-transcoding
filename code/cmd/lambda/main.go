@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"maryam/image-transcode/pkg/config_reader"
 	"maryam/image-transcode/pkg/image_scaling"
-	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -16,16 +18,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-func downloadObject(ctx *context.Context, client *s3.Client, bucketName string, objectKey string, tmpObjectFilePath string) (err error) {
-	tmpObjectFile, err := os.Create(tmpObjectFilePath)
-	if err != nil {
-		return fmt.Errorf("%v: error creating file to download object to", err)
-	}
-	defer tmpObjectFile.Close()
+func downloadObject(ctx *context.Context, client *s3.Client, bucketName string, objectKey string, writer io.WriterAt) (err error) {
 
 	downloader := manager.NewDownloader(client)
-	log.Printf("Download object %s from bucket %s into file %s\n", objectKey, bucketName, tmpObjectFilePath)
-	_, err = downloader.Download(*ctx, tmpObjectFile, &s3.GetObjectInput{
+	log.Printf("Download object %s from bucket %s \n", objectKey, bucketName)
+	_, err = downloader.Download(*ctx, writer, &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
 	})
@@ -35,23 +32,18 @@ func downloadObject(ctx *context.Context, client *s3.Client, bucketName string, 
 	return nil
 }
 
-func uploadObject(ctx *context.Context, client *s3.Client, bucketName string, objectKey string, objectFilePath string, imageInfo *image_scaling.ScalingImage) (err error) {
-	objectFile, err := os.Open(objectFilePath)
-	if err != nil {
-		return fmt.Errorf("%v: error opening file to download", err)
-	}
-	defer objectFile.Close()
+func uploadObject(ctx *context.Context, client *s3.Client, bucketName string, objectKey string, reader io.Reader, imageInfo *image_scaling.ScalingImage) (err error) {
 
 	log.Printf("Uploading new file")
 	uploader := manager.NewUploader(client)
 	_, err = uploader.Upload(*ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(bucketName),
 		Key:         aws.String(objectKey),
-		Body:        objectFile,
+		Body:        reader,
 		ContentType: aws.String(fmt.Sprintf("image/%s", imageInfo.GetFormat())),
 	})
 	if err != nil {
-		return fmt.Errorf("%v: failed to upload scaled image %s to destination bucket %s", err, objectFilePath, bucketName)
+		return fmt.Errorf("%v: failed to upload scaled image to destination bucket %s", err, bucketName)
 	}
 	log.Printf("Completed uploading to s3")
 
@@ -84,23 +76,25 @@ func HandleS3Trigger(ctx context.Context, s3Event events.S3Event) (err error) {
 			bucketName := s3obj.Bucket.Name
 			objectKey := s3obj.Object.Key
 			destObjectKey := fmt.Sprintf("%dx%d/%s", transcoding.GetResolutionY(), transcoding.GetResolutionX(), objectKey)
-			tmpObjectFilePath := fmt.Sprintf("/tmp/%s", objectKey)
-			tmpScaledObjectFilePath := fmt.Sprintf("/tmp/%dx%d-%s", transcoding.GetResolutionY(), transcoding.GetResolutionX(), objectKey)
 
-			// download file into disk
-			err = downloadObject(&ctx, client, bucketName, objectKey, tmpObjectFilePath)
+			// download file into memory
+			var buff []byte = make([]byte, 1024)
+			writer := manager.NewWriteAtBuffer(buff)
+			err = downloadObject(&ctx, client, bucketName, objectKey, writer)
 			if err != nil {
 				return fmt.Errorf("%v: error downloading object", err)
 			}
 
 			// Start scaling process
-			image, err := image_scaling.ScaleImageFromSource(tmpObjectFilePath, tmpScaledObjectFilePath, transcoding.GetResolutionY(), transcoding.GetResolutionX())
+			image_old_reader := bufio.NewReader(bytes.NewReader(writer.Bytes()))
+			image_new_readwriter := bufio.NewReadWriter(bufio.NewReader(bytes.NewBuffer(make([]byte, 1024))), bufio.NewWriter(bytes.NewBuffer(make([]byte, 1024))))
+			image, err := image_scaling.ScaleImage(image_old_reader, image_new_readwriter, transcoding.GetResolutionY(), transcoding.GetResolutionX())
 			if err != nil {
 				return fmt.Errorf("%v: error scaling image", err)
 			}
 
 			// Upload file
-			err = uploadObject(&ctx, client, conf.DestinationS3BucketName, destObjectKey, tmpScaledObjectFilePath, image)
+			err = uploadObject(&ctx, client, conf.DestinationS3BucketName, destObjectKey, image_new_readwriter, image)
 			if err != nil {
 				return fmt.Errorf("%v: error uploading scaled image", err)
 			}
