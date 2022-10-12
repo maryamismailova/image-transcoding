@@ -50,7 +50,7 @@ jobs:
         run: |
           sed -i "s/WORKFLOW_RUN/${GITHUB_WORKFLOW}\#${GITHUB_RUN_NUMBER}/g" code/template.yaml
           sed -i "s/COMMIT_ID/${GITHUB_SHA::7}/g" code/template.yaml
-          sed -i "s/SOURCE_BRANCH/${GITHUB_REF_NAME}/g" code/template.yaml
+          sed -i  "s~SOURCE_BRANCH~${GITHUB_REF_NAME}~g" code/template.yaml
       - name: Download build artifact
         uses: actions/download-artifact@v3
         with:
