@@ -34,7 +34,9 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: sam-go-build
-          path: code/.aws-sam/
+          path: |
+            code/.aws-sam/
+            code/template.yaml
   deploy:
     runs-on: ubuntu-22.04
     needs:
@@ -53,5 +55,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: sam-go-build
-      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env ${{inputs.ENV}}
+      - run: |
+          cat template.yaml
+          sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env ${{inputs.ENV}}
         working-directory: code/
