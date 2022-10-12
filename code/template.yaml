@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: ImageTranscoding
+    Description: Application that transcodes incoming jpeg and png images and provides its API
+    Author: Maryam Ismayilova
+Parameters:
+  SourceBucketName:
+    Type: String
+    Default: rb-input-dev
+  DestinationBucketName:
+    Type: String
+    Default: rb
+  Env:
+    Type: String
+    Default: dev
+  APIFunctionNamePrefix:
+    Type: String
+    Default: api
+  MemorySize:
+    Type: Number
+    Default: 1024
+  FunctionNamePrefix:
+    Type: String
+    Default: image-scaling-trigger
+  Env:
+    Type: String
+    Default: dev
+  ImageMaxAllowedSize:
+    Type: Number
+    Default: 100
+  ImageMaxAllowedResolutions:
+    Type: String
+    Default: "1024x1024;2048x2048"
+  MemorySize:
+    Type: Number
+    Default: 1024
+  WorkflowRun:
+    Type: String
+    Default: WORKFLOW_RUN
+  CommitId:
+    Type: String
+    Default: COMMIT_ID
+  Branch:
+    Type: String
+    Default: SOURCE_BRANCH
+
+Globals:
+  Function:
+    Environment:
+        Variables:
+          ENV: !Ref Env
+          S3_SOURCE_BUCKET: !Ref SourceBucketName
+          S3_DESTINATION_BUCKET: !Ref DestinationBucketName
+          IMAGE_MAX_ALLOWED_SIZE: !Ref ImageMaxAllowedSize
+          IMAGE_ALLOWED_RESOLUTIONS: !Ref ImageMaxAllowedResolutions
+
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  ## S3 bucket
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref SourceBucketName
+      AccessControl: Private
+  DestinationBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref DestinationBucketName
+      AccessControl: Private
+  ImageUploadsAPI:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${APIFunctionNamePrefix}-${Env}"
+      CodeUri: cmd/api/
+      Handler: main
+      Runtime: go1.x
+      PackageType: Zip
+      AutoPublishAlias: !Ref Env
+      MemorySize: !Ref MemorySize
+      Description: !Sub "Workflow: ${WorkflowRun}, Commit: ${CommitId}, Branch: ${Branch}"
+      FunctionUrlConfig:
+        AuthType: NONE
+      Timeout: 10
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref SourceBucketName
+      FunctionUrlConfig:
+        AuthType: NONE
+      Timeout: 10
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref SourceBucketName
+  ## Lambda function
+  ResizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${FunctionNamePrefix}-${Env}"
+      CodeUri: cmd/lambda/
+      Handler: main
+      Runtime: go1.x
+      PackageType: Zip
+      AutoPublishAlias: !Ref Env
+      MemorySize: !Ref MemorySize
+      Description: !Sub "Workflow: ${WorkflowRun}, Commit: ${CommitId}, Branch: ${Branch}"
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref SourceBucketName
+        - S3CrudPolicy:
+            BucketName: !Ref DestinationBucketName
+      Events:
+        FileUpload:
+          Type: S3
+          Properties:
+            Bucket: !Ref SourceBucket
+            Events: s3:ObjectCreated:*
+
+Outputs:
+  SourceBucketName:
+    Value: !Ref SourceBucketName
+    Description: S3 Bucket for object storage
+  DestinationBucketName:
+    Value: !Ref DestinationBucketName
+    Description: S3 destination Bucket for object storage
+  S3FunctionArn:
+    Value: !Ref ResizerFunction
+    Description: ResizerFunction function  Arn
+  ApiFunctionArn:
+    Value: !Ref ImageUploadsAPI
+    Description: ImageUploadsAPI function  Arn
