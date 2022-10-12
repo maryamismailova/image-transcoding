@@ -59,3 +59,4 @@ jobs:
         run: |
           sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env ${{inputs.ENV}}
         working-directory: code/
+
