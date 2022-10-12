@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: ImageAPI
+    Description: API Endpoint to post image
+    Author: Maryam Ismayilova
+Parameters:
+  SourceBucketName:
+    Type: String
+    Default: rb-input-dev
+  Env:
+    Type: String
+    Default: dev
+  APIFunctionNamePrefix:
+    Type: String
+    Default: api
+  MemorySize:
+    Type: Number
+    Default: 1024
+
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref SourceBucketName
+      AccessControl: Private
+  ## Lambda function
+  ImageUploadsAPI:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${APIFunctionNamePrefix}-${Env}"
+      CodeUri: cmd/api/
+      Handler: main
+      Runtime: go1.x
+      PackageType: Zip
+      AutoPublishAlias: !Ref Env
+      MemorySize: !Ref MemorySize
+      FunctionUrlConfig:
+        AuthType: NONE
+      Timeout: 10
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref SourceBucketName
+      Environment:
+        Variables:
+          ENV: !Ref Env
+
+Outputs:
+  FunctionArn:
+    Value: !Ref ImageUploadsAPI
+    Description: ImageUploadsAPI function  Arn

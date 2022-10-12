@@ -1,0 +1,31 @@
+version = 0.1
+
+
+
+[dev]
+[dev.global.parameters]
+parameter_overrides = "SourceBucketName=\"rb-input-dev\" DestinationBucketName=\"rb-output-dev\" APIFunctionNamePrefix=\"api\" Env=\"dev\" MemorySize=\"1024\""
+[dev.deploy.parameters]
+s3_bucket = "rb-sam"
+stack_name = "image-transcoding-dev"
+s3_prefix = "dev"
+capabilities = "CAPABILITY_IAM"
+
+
+[stage]
+[stage.global.parameters]
+parameter_overrides = "SourceBucketName=\"image-input-stage\" DestinationBucketName=\"image-output-stage\" FunctionNamePrefix=\"image-scaling-trigger\" Env=\"stage\" MemorySize=\"1024\""
+[stage.deploy.parameters]
+s3_bucket = "rb-sam"
+stack_name = "image-transcoding-stage"
+s3_prefix = "stage"
+capabilities = "CAPABILITY_IAM"
+
+[prod]
+[prod.global.parameters]
+parameter_overrides = "SourceBucketName=\"image-input-prod\" DestinationBucketName=\"image-output-prod\" FunctionNamePrefix=\"image-scaling-trigger\" Env=\"prod\" MemorySize=\"1024\""
+[prod.deploy.parameters]
+s3_bucket = "rb-sam"
+stack_name = "image-transcoding-prod"
+s3_prefix = "prod"
+capabilities = "CAPABILITY_IAM"
