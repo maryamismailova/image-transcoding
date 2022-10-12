@@ -15,15 +15,20 @@ import (
 //Config represents the data structure read from proprties file
 //some defaults are provided, while others like paths should be set explicitely
 type Config struct {
-	DestResolutionY         int          `properties:"resolutionY,default=200"`
-	DestResolutionX         int          `properties:"resolutionX,default=200"`
-	SourceFilePath          string       `properties:"sourceFilePath,default=test"`
-	DestinationFilePath     string       `properties:"destinationFilePath,default=test"`
-	SourceS3BucketName      string       `properties:"sourceS3Bucket,default=test"`
-	DestinationS3BucketName string       `properties:"destinationS3Bucket,default=test"`
-	S3ObjectMaxSizeInMb     int64        `properties:"s3ObjectMaxSizeInMb,default=100"`
-	TranscodingResolutions  []Resolution `properties:"transcodingResolutions,default=300x300"`
-	ImageExtensions         []string     `properties:"imageExtensions,default=png;jpeg"`
+	DestResolutionY     int    `properties:"resolutionY,default=200"`
+	DestResolutionX     int    `properties:"resolutionX,default=200"`
+	SourceFilePath      string `properties:"sourceFilePath,default=/tmp"`
+	DestinationFilePath string `properties:"destinationFilePath,default=/tmp"`
+	//ENV: S3_SOURCE_BUCKET
+	SourceS3BucketName string `properties:"sourceS3Bucket,default=input"`
+	//ENV: S3_DESTINATION_BUCKET
+	DestinationS3BucketName string `properties:"destinationS3Bucket,default=output"`
+	//ENV: IMAGE_MAX_ALLOWED_SIZE
+	S3ObjectMaxSizeInMb int64 `properties:"s3ObjectMaxSizeInMb,default=100"`
+	//ENV: IMAGE_ALLOWED_RESOLUTIONS
+	TranscodingResolutions []Resolution `properties:"transcodingResolutions,default=300x300"`
+	//ENV: IMAGE_ALLOWED_EXTENSIONS
+	ImageExtensions []string `properties:"imageExtensions,default=png;jpeg"`
 }
 
 type Resolution string
@@ -48,6 +53,24 @@ func (resolution *Resolution) verify() bool {
 	return true
 }
 
+func overrideFromEnvs(p *properties.Properties) {
+	if env, ok := os.LookupEnv("S3_SOURCE_BUCKET"); ok {
+		p.Set("sourceS3Bucket", env)
+	}
+	if env, ok := os.LookupEnv("S3_DESTINATION_BUCKET"); ok {
+		p.Set("destinationS3Bucket", env)
+	}
+	if env, ok := os.LookupEnv("IMAGE_MAX_ALLOWED_SIZE"); ok {
+		p.Set("s3ObjectMaxSizeInMb", env)
+	}
+	if env, ok := os.LookupEnv("IMAGE_ALLOWED_RESOLUTIONS"); ok {
+		p.Set("transcodingResolutions", env)
+	}
+	if env, ok := os.LookupEnv("IMAGE_ALLOWED_EXTENSIONS"); ok {
+		p.Set("imageExtensions", env)
+	}
+}
+
 //GetConfigsFromDir reads application properties from a given root directory
 func GetConfigsFromDir(configRootDir string) (config *Config, err error) {
 	defer func() {
@@ -68,6 +91,9 @@ func GetConfigsFromDir(configRootDir string) (config *Config, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("%v: unable to load config file", err)
 	}
+
+	overrideFromEnvs(p)
+
 	config = &Config{}
 	err = p.Decode(config)
 	if err != nil {

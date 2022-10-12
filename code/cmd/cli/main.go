@@ -12,7 +12,7 @@ func TestImageScaling() {
 		log.Fatalf("Error: %v\n", err)
 	}
 	log.Printf("Loaded config: %+v\n", config)
-	log.Printf("%v\n", len(config.TranscodingResolutions))
+
 	for _, transcoding := range config.TranscodingResolutions {
 		_, err = image_scaling.ScaleImageFromSource(config.SourceFilePath, config.DestinationFilePath, transcoding.GetResolutionY(), transcoding.GetResolutionX())
 		if err != nil {
