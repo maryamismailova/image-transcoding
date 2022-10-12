@@ -97,7 +97,6 @@ func HandleImageUploadRequest(ctx context.Context, request events.LambdaFunction
 		StatusCode: http.StatusOK,
 		Body:       fmt.Sprintf("Image was uploaded to %s/%s", configs.SourceS3BucketName, image_name_full),
 	}, nil
-
 }
 
 func main() {
