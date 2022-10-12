@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"maryam/image-transcode/pkg/config_reader"
+	"maryam/image-transcode/pkg/image_scaling"
 	"maryam/image-transcode/pkg/image_upload"
 	"net/http"
 	"regexp"
@@ -15,6 +16,22 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
+
+func uploadImage(ctx *context.Context, bucketName string, image string, image_obj *image_scaling.ScalingImage, image_bytes *[]byte) error {
+	log.Println("Initializing aws session")
+	cfg, err := config.LoadDefaultConfig(*ctx)
+	if err != nil {
+		return fmt.Errorf("%v: error loading session config", err)
+	}
+	client := s3.NewFromConfig(cfg)
+	log.Println("Session initialized")
+	log.Printf("Uploading object %s to bucket %s", image, bucketName)
+	err = image_upload.UploadImageObject(ctx, client, bucketName, image, image_obj, image_bytes)
+	if err != nil {
+		return fmt.Errorf("%v: error uploading image to bucket")
+	}
+	return nil
+}
 
 func HandleImageUploadRequest(ctx context.Context, request events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
 	log.Println("Image upload request received")
@@ -67,20 +84,10 @@ func HandleImageUploadRequest(ctx context.Context, request events.LambdaFunction
 	}
 	log.Println("Image verification complete")
 
-	log.Printf("Image received of format %s\n", image_obj.GetFormat())
-
 	// Image upload
 	log.Println("Started uploading to S3")
 	image_name_full := fmt.Sprintf("%s.%s", image_name_prefix, image_obj.GetFormat())
-	log.Println("Initializing aws session")
-	cfg, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		return events.LambdaFunctionURLResponse{StatusCode: http.StatusInternalServerError}, err
-	}
-	client := s3.NewFromConfig(cfg)
-	log.Println("Session initialized")
-	log.Printf("Uploading object %s to bucket %s", image_name_full, configs.SourceS3BucketName)
-	err = image_upload.UploadImageObject(&ctx, client, configs.SourceS3BucketName, image_name_full, image_obj, &image_bytes)
+	err = uploadImage(&ctx, configs.SourceS3BucketName, image_name_full, image_obj, &image_bytes)
 	if err != nil {
 		return events.LambdaFunctionURLResponse{StatusCode: http.StatusInternalServerError}, err
 	}
