@@ -100,5 +100,6 @@ func HandleImageUploadRequest(ctx context.Context, request events.LambdaFunction
 }
 
 func main() {
+
 	lambda.Start(HandleImageUploadRequest)
 }

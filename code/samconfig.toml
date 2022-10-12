@@ -4,7 +4,7 @@ version = 0.1
 
 [dev]
 [dev.global.parameters]
-parameter_overrides = "SourceBucketName=\"rb-input-dev\" DestinationBucketName=\"rb-output-dev\"  Env=\"dev\" MemorySize=\"1024\" "
+parameter_overrides = "SourceBucketName=\"rb-input-dev\" DestinationBucketName=\"rb-output-dev\"  Env=\"dev\" MemorySize=\"1024\" WorkflowRun=\"WORKFLOW_RUN\" CommitId=\"COMMIT_ID\" Branch=\"SOURCE_BRANCH\""
 [dev.deploy.parameters]
 s3_bucket = "rb-sam"
 stack_name = "image-transcoding-dev"
@@ -14,7 +14,7 @@ capabilities = "CAPABILITY_IAM"
 
 [stage]
 [stage.global.parameters]
-parameter_overrides = "SourceBucketName=\"image-input-stage\" DestinationBucketName=\"image-output-stage\"  Env=\"stage\" MemorySize=\"1024\""
+parameter_overrides = "SourceBucketName=\"image-input-stage\" DestinationBucketName=\"image-output-stage\"  Env=\"stage\" MemorySize=\"1024\"  WorkflowRun=\"WORKFLOW_RUN\" CommitId=\"COMMIT_ID\" Branch=\"SOURCE_BRANCH\""
 [stage.deploy.parameters]
 s3_bucket = "rb-sam"
 stack_name = "image-transcoding-stage"
@@ -23,7 +23,7 @@ capabilities = "CAPABILITY_IAM"
 
 [prod]
 [prod.global.parameters]
-parameter_overrides = "SourceBucketName=\"image-input-prod\" DestinationBucketName=\"image-output-prod\" Env=\"prod\" MemorySize=\"1024\""
+parameter_overrides = "SourceBucketName=\"image-input-prod\" DestinationBucketName=\"image-output-prod\" Env=\"prod\" MemorySize=\"1024\"  WorkflowRun=\"WORKFLOW_RUN\" CommitId=\"COMMIT_ID\" Branch=\"SOURCE_BRANCH\""
 [prod.deploy.parameters]
 s3_bucket = "rb-sam"
 stack_name = "image-transcoding-prod"

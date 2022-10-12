@@ -25,9 +25,6 @@ jobs:
           go-version-file: "code/go.mod"
           cache: true
           cache-dependency-path: code/go.sum
-      - name: Set lambda description for workflow run
-        run: |
-          sed -i "s/WORKFLOW_RUN/${GITHUB_WORKFLOW}\#${GITHUB_RUN_NUMBER}/g;s/COMMIT_ID/${GITHUB_SHA::7}/g;s~SOURCE_BRANCH~${GITHUB_REF_NAME}~g" code/template.yaml
       - run: sam build  --config-file samconfig.toml --config-env ${{inputs.ENV}}
         working-directory: code/
       - name: Archive build artifacts
@@ -57,8 +54,8 @@ jobs:
           path: code/.aws-sam/
       - name: Set lambda description for workflow run
         run: |
-          sed -i "s/WORKFLOW_RUN/${GITHUB_WORKFLOW}\#${GITHUB_RUN_NUMBER}/g;s/COMMIT_ID/${GITHUB_SHA::7}/g;s~SOURCE_BRANCH~${GITHUB_REF_NAME}~g" code/template.yaml
-      - run: |
-          cat template.yaml
+          sed -i "s/WORKFLOW_RUN/${GITHUB_WORKFLOW}\#${GITHUB_RUN_NUMBER}/g;s/COMMIT_ID/${GITHUB_SHA::7}/g;s~SOURCE_BRANCH~${GITHUB_REF_NAME}~g" code/samconfig.toml
+      - name: SAM deploy
+        run: |
           sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env ${{inputs.ENV}}
         working-directory: code/

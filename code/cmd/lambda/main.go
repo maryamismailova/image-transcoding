@@ -54,6 +54,7 @@ func uploadObject(ctx *context.Context, client *s3.Client, bucketName string, ob
 		return fmt.Errorf("%v: failed to upload scaled image %s to destination bucket %s", err, objectFilePath, bucketName)
 	}
 	log.Printf("Completed uploading to s3")
+
 	return nil
 }
 
