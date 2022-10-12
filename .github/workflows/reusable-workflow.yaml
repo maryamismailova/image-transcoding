@@ -55,6 +55,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: sam-go-build
+          path: code/.aws-sam/
       - run: |
           cat template.yaml
           sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env ${{inputs.ENV}}
