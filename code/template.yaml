@@ -80,6 +80,7 @@ Resources:
       PackageType: Zip
       AutoPublishAlias: !Ref Env
       MemorySize: !Ref MemorySize
+      Description: !Sub "Workflow: ${WorkflowRun}, Commit: ${CommitId}, Branch: ${Branch}"
       FunctionUrlConfig:
         AuthType: NONE
       Timeout: 10
