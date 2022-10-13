@@ -84,7 +84,7 @@ Resources:
       Description: !Sub "Workflow: ${WorkflowRun}, Commit: ${CommitId}, Branch: ${Branch}"
       FunctionUrlConfig:
         AuthType: NONE
-      Timeout: 10
+      Timeout: 30
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref SourceBucketName
