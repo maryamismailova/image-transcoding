@@ -14,7 +14,7 @@ capabilities = "CAPABILITY_IAM"
 
 [stage]
 [stage.global.parameters]
-parameter_overrides = "SourceBucketName=\"image-input-stage\" DestinationBucketName=\"image-output-stage\"  Env=\"stage\" MemorySize=\"1024\"  WorkflowRun=\"WORKFLOW_RUN\" CommitId=\"COMMIT_ID\" Branch=\"SOURCE_BRANCH\""
+parameter_overrides = "SourceBucketName=\"rb-input-stage\" DestinationBucketName=\"rb-output-stage\"  Env=\"stage\" MemorySize=\"1024\"  WorkflowRun=\"WORKFLOW_RUN\" CommitId=\"COMMIT_ID\" Branch=\"SOURCE_BRANCH\""
 [stage.deploy.parameters]
 s3_bucket = "rb-sam"
 stack_name = "image-transcoding-stage"
@@ -23,7 +23,7 @@ capabilities = "CAPABILITY_IAM"
 
 [prod]
 [prod.global.parameters]
-parameter_overrides = "SourceBucketName=\"image-input-prod\" DestinationBucketName=\"image-output-prod\" Env=\"prod\" MemorySize=\"1024\"  WorkflowRun=\"WORKFLOW_RUN\" CommitId=\"COMMIT_ID\" Branch=\"SOURCE_BRANCH\""
+parameter_overrides = "SourceBucketName=\"rb-input-prod\" DestinationBucketName=\"rb-output-prod\" Env=\"prod\" MemorySize=\"1024\"  WorkflowRun=\"WORKFLOW_RUN\" CommitId=\"COMMIT_ID\" Branch=\"SOURCE_BRANCH\""
 [prod.deploy.parameters]
 s3_bucket = "rb-sam"
 stack_name = "image-transcoding-prod"
