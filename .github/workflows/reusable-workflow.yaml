@@ -13,7 +13,7 @@ on:
         required: true
 
 jobs:
-  build:
+  build_and_deploy:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -33,25 +33,12 @@ jobs:
           name: sam-go-build
           path: |
             code/.aws-sam/
-  deploy:
-    runs-on: ubuntu-22.04
-    needs:
-      - build
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-      - uses: aws-actions/setup-sam@v2
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Download build artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: sam-go-build
-          path: code/.aws-sam/
       - name: Set lambda description for workflow run
         run: |
           sed -i "s/WORKFLOW_RUN/${GITHUB_WORKFLOW}\#${GITHUB_RUN_NUMBER}/g;s/COMMIT_ID/${GITHUB_SHA::7}/g;s~SOURCE_BRANCH~${GITHUB_REF_NAME}~g" code/samconfig.toml
@@ -59,4 +46,3 @@ jobs:
         run: |
           sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env ${{inputs.ENV}}
         working-directory: code/
-
