@@ -84,7 +84,7 @@ Resources:
       Description: !Sub "Workflow: ${WorkflowRun}, Commit: ${CommitId}, Branch: ${Branch}"
       FunctionUrlConfig:
         AuthType: NONE
-      Timeout: 30
+      Timeout: 10
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref SourceBucketName
@@ -101,7 +101,7 @@ Resources:
       PackageType: Zip
       AutoPublishAlias: !Ref Env
       MemorySize: !Ref MemorySize
-      Timeout: 10
+      Timeout: 30
       Description: !Sub "Workflow: ${WorkflowRun}, Commit: ${CommitId}, Branch: ${Branch}"
       Policies:
         - S3ReadPolicy:
